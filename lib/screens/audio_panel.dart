@@ -160,7 +160,7 @@ class AudioPanel extends StatefulWidget {
     duration.inSeconds))),
     icon:const Icon(Icons.replay_10)),
     TextButton(onPressed:(){
-      speed=speed>=2?.75:speed+.25;
+      speed = speed >= 2.0 ? 0.75 : speed + 0.25;
       player.setPlaybackRate(speed);
       setState((){
       });

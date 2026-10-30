@@ -376,9 +376,10 @@ class WirdReader extends StatefulWidget {
         id:id,
         url:store.audio[id] as String? ?? '',
         store:store)]);
-      } final i=index-1,
-      item=widget.wird.items[i];
-      return AnimatedOpacity(opacity:remaining[i]==0?.45:1,
+      }
+      final i = index - 1;
+      final item = widget.wird.items[i];
+      return AnimatedOpacity(opacity: remaining[i] == 0 ? 0.45 : 1.0,
       duration:const Duration(milliseconds:200),
       child:Container(margin:const EdgeInsets.only(top:18),
       decoration:BoxDecoration(color:bg,
