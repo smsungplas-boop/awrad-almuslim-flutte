@@ -1,7 +1,7 @@
 name: Flutter Android APK
 on:
   push:
-    branches: [main]
+    branches: [main, feat/native-flutter-app]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -24,7 +24,22 @@ jobs:
           flutter-version: '3.32.8'
           channel: stable
           cache: true
-      - uses: android-actions/setup-android@v3
+      - name: Check SDK setup script
+        run: python3 tool/test_android_setup.py
+      - name: Set up Android command-line tools only
+        uses: android-actions/setup-android@v3
+        with:
+          # Accept licenses in the bounded, verified step below instead.
+          accept-android-sdk-licenses: 'false'
+          packages: ''
+      - name: Accept licenses and install required Android SDK packages
+        timeout-minutes: 10
+        shell: bash
+        run: bash tool/setup_android_ci.sh
+      - name: Verify Flutter and Java toolchains
+        run: |
+          java -version
+          flutter --version
       - name: Prepare Gradle wrapper (checksum verified)
         run: sh tool/bootstrap_android.sh
       - name: Resolve packages

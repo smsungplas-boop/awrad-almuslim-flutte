@@ -6,6 +6,7 @@ plugins {
 android {
     namespace 'org.awrad.almuslim'
     compileSdk 35
+    buildToolsVersion '35.0.0'
     ndkVersion flutter.ndkVersion
     compileOptions {
         coreLibraryDesugaringEnabled true
