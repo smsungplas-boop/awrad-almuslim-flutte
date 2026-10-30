@@ -45,11 +45,30 @@ jobs:
       - name: Resolve packages
         run: flutter pub get
       - name: Analyze
-        run: flutter analyze --no-fatal-infos
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/ci-logs
+          flutter analyze --no-fatal-infos 2>&1 | tee build/ci-logs/analyze.log
       - name: Test
-        run: flutter test --reporter expanded
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/ci-logs
+          flutter test --reporter expanded 2>&1 | tee build/ci-logs/test.log
       - name: Build APK
-        run: flutter build apk --release
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/ci-logs
+          flutter build apk --release 2>&1 | tee build/ci-logs/build.log
+      - name: Preserve diagnostic logs even when a check fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-diagnostics
+          path: build/ci-logs/
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         with:
           name: awrad-almuslim-apk
