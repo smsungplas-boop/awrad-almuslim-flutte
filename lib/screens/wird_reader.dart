@@ -352,7 +352,9 @@ class WirdReader extends StatefulWidget {
       });
     },
     icon:Icon(timer==null?Icons.play_arrow:Icons.pause))])),
-    Expanded(child:ListView.builder(controller:scroll,
+    Expanded(child:ListView.builder(
+    key: ValueKey('wird-list-${widget.wird.id}'),
+    controller:scroll,
     padding:const EdgeInsets.all(16),
     itemCount:widget.wird.items.length+1,
     itemBuilder:(c,
@@ -427,7 +429,9 @@ class WirdReader extends StatefulWidget {
         color:ink));
       }),
       const SizedBox(height:20),
-      Semantics(button:true,
+      Semantics(
+      key: ValueKey('dhikr-counter-${widget.wird.id}-$i'),
+      button:true,
       label:'المتبقي ${remaining[i]}',
       child:Container(padding:const EdgeInsets.all(18),
       decoration:BoxDecoration(shape:shape==1?BoxShape.rectangle:BoxShape.circle,

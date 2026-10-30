@@ -61,12 +61,41 @@ void main() {
     expect(find.text('تعذر تحميل الآيات. النصوص العادية متاحة دون اتصال.'), findsNothing);
 
     // Exercise the real counter and its stored progress as part of navigation.
-    final counter = find.bySemanticsLabel(RegExp('^المتبقي ${morning.items.first.repeat}' r'(?:\s|$)')).first;
-    await tester.ensureVisible(counter);
+    // Offscreen Semantics nodes may be clipped even when their widgets are
+    // built. Find the exact first counter by identity and scroll the reader's
+    // vertical list until it is visible; do not search by a repeated count.
+    final readerList = find.byKey(const ValueKey('wird-list-a3'));
+    final readerScrollable = find.descendant(
+      of: readerList,
+      matching: find.byType(Scrollable),
+    );
+    expect(readerScrollable, findsOneWidget);
+    final counter = find.byKey(const ValueKey('dhikr-counter-a3-0'));
+    await tester.scrollUntilVisible(
+      counter,
+      240,
+      scrollable: readerScrollable,
+      maxScrolls: 50,
+    );
+    await tester.pumpAndSettle();
+    expect(counter.hitTestable(), findsOneWidget);
+    expect(
+      tester.widget<Semantics>(counter).properties.label,
+      'المتبقي ${morning.items.first.repeat}',
+    );
     await tester.tap(counter);
     await tester.pumpAndSettle();
     expect((store.data['progress_a3'] as List).first, morning.items.first.repeat - 1);
     expect(store.get<int>('total', 0), 1);
+    // The UI must also reflect the updated counter, not only the store.
+    expect(
+      tester.widget<Semantics>(counter).properties.label,
+      'المتبقي ${morning.items.first.repeat - 1}',
+    );
+    expect(
+      find.descendant(of: counter, matching: find.text('✓')),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
 
     await tester.pageBack();
