@@ -120,7 +120,22 @@ void main() {
     );
     expect(tester.takeException(), isNull);
 
-    await tester.pageBack();
+    // Flutter 3.32.8 pageBack() looks for the English tooltip "Back" and
+    // otherwise a Cupertino button. This route uses a localized Material
+    // BackButton, so find and press that real button within the reader.
+    final backButton = find.descendant(
+      of: find.byType(WirdReader),
+      matching: find.byType(BackButton),
+    );
+    expect(backButton.hitTestable(), findsOneWidget);
+    final backTooltip = MaterialLocalizations.of(
+      tester.element(backButton),
+    ).backButtonTooltip;
+    expect(
+      find.descendant(of: backButton, matching: find.byTooltip(backTooltip)),
+      findsOneWidget,
+    );
+    await tester.tap(backButton);
     await pumpUntilState(
       tester,
       () => find.byType(WirdReader).evaluate().isEmpty &&
