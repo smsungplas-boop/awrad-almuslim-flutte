@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+set -eu
+# Standard wrapper JAR is bootstrapped by tool/bootstrap_android.sh, verified against upstream SHA-256.
+BASE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+if [ ! -f "$BASE/gradle/wrapper/gradle-wrapper.jar" ]; then
+  sh "$BASE/../tool/bootstrap_android.sh"
+fi
+if [ -n "${JAVA_HOME:-}" ]; then JAVACMD="$JAVA_HOME/bin/java"; else JAVACMD=java; fi
+exec "$JAVACMD" -Dorg.gradle.appname=gradlew -classpath "$BASE/gradle/wrapper/gradle-wrapper.jar" org.gradle.wrapper.GradleWrapperMain "$@"

@@ -1,0 +1,76 @@
+name: Flutter Android APK
+on:
+  push:
+    branches: [main, feat/native-flutter-app]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.8'
+          channel: stable
+          cache: true
+      - name: Check SDK setup script
+        run: python3 tool/test_android_setup.py
+      - name: Set up Android command-line tools only
+        uses: android-actions/setup-android@v3
+        with:
+          # Accept licenses in the bounded, verified step below instead.
+          accept-android-sdk-licenses: 'false'
+          packages: ''
+      - name: Accept licenses and install required Android SDK packages
+        timeout-minutes: 10
+        shell: bash
+        run: bash tool/setup_android_ci.sh
+      - name: Verify Flutter and Java toolchains
+        run: |
+          java -version
+          flutter --version
+      - name: Prepare Gradle wrapper (checksum verified)
+        run: sh tool/bootstrap_android.sh
+      - name: Resolve packages
+        run: flutter pub get
+      - name: Analyze
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/ci-logs
+          flutter analyze --no-fatal-infos 2>&1 | tee build/ci-logs/analyze.log
+      - name: Test
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/ci-logs
+          flutter test --reporter expanded 2>&1 | tee build/ci-logs/test.log
+      - name: Build APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/ci-logs
+          flutter build apk --release 2>&1 | tee build/ci-logs/build.log
+      - name: Preserve diagnostic logs even when a check fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-diagnostics
+          path: build/ci-logs/
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        with:
+          name: awrad-almuslim-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
